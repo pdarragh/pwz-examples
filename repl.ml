@@ -1,10 +1,10 @@
 #mod_use "types.ml";;
-#mod_use "grammars.ml";;
 #mod_use "pwz.ml";;
+#mod_use "grammars.ml";;
 
 open Types;;
-open Grammars;;
 open Pwz;;
+open Grammars;;
 
 let introduction =
   [ "################################################################################"
