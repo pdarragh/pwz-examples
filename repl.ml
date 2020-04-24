@@ -2,8 +2,6 @@
 #mod_use "pwz.ml";;
 #mod_use "grammars.ml";;
 
-open Types;;
-open Pwz;;
 open Grammars;;
 
 let introduction =
