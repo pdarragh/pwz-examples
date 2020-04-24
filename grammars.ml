@@ -73,7 +73,7 @@ Grammar1: The empty grammar through self-reference.
 
    e ::= e
 *)
-module Grammar1 = struct
+module Grammar1 : Grammar = struct
   let tokens = []
 
   let rec e : exp = { m = m_bottom; e' = Seq ("e", [e]) }
@@ -86,7 +86,7 @@ Grammar2: The empty grammar, but seems productive.
 
    e ::= A e
 *)
-module Grammar2 = struct
+module Grammar2 : Grammar = struct
   let t_A = (1, "A")
 
   let tokens = [('A', t_A)]
@@ -103,7 +103,10 @@ Grammar3: Ambiguously empty grammar.
    e ::= A e
        | e A
 *)
-module Grammar3 = struct
+module Grammar3 : Grammar = struct
+  let tokens = []
+
+  let start = e_bottom
 end
 
 (*
@@ -111,7 +114,10 @@ Grammar4: Another tricky empty grammar.
 
    e ::= A e A
 *)
-module Grammar4 = struct
+module Grammar4 : Grammar = struct
+  let tokens = []
+
+  let start = e_bottom
 end
 
 (*
@@ -121,7 +127,10 @@ Grammar5: Right-recursive with infinite parse forests.
        | A e
        | ε
 *)
-module Grammar5 = struct
+module Grammar5 : Grammar = struct
+  let tokens = []
+
+  let start = e_bottom
 end
 
 (*
@@ -131,7 +140,10 @@ Grammar6: Left-recursive with infinite parse forests.
        | e A
        | ε
 *)
-module Grammar6 = struct
+module Grammar6 : Grammar = struct
+  let tokens = []
+
+  let start = e_bottom
 end
 
 (*
@@ -141,7 +153,10 @@ Grammar7: Palindromes. Not ambiguous, and not LL(k) or LR(k) for any k.
        | B e B
        | ε
 *)
-module Grammar7 = struct
+module Grammar7 : Grammar = struct
+  let tokens = []
+
+  let start = e_bottom
 end
 
 (*
@@ -151,7 +166,10 @@ Grammar8: Hidden production with left-recursion.
         | ε
    e2 ::= e1
 *)
-module Grammar8 = struct
+module Grammar8 : Grammar = struct
+  let tokens = []
+
+  let start = e_bottom
 end
 
 (*
@@ -161,7 +179,10 @@ Grammar9: Hidden production with right-recursion.
         | ε
    e2 ::= e1
 *)
-module Grammar9 = struct
+module Grammar9 : Grammar = struct
+  let tokens = []
+
+  let start = e_bottom
 end
 
 (*
@@ -170,7 +191,9 @@ Grammar10: Empty grammar through mutual reference.
    e1 ::= e2
    e2 ::= e1
 *)
-module Grammar10 = struct
+module Grammar10 : Grammar = struct
+  let tokens = []
+
   let rec e1 = { m = m_bottom; e' = Seq ("e1", [e2]) }
       and e2 = { m = m_bottom; e' = Seq ("e2", [e1]) }
 
@@ -184,7 +207,10 @@ Grammar11: Tricky single-token grammar.
         | A
    e2 ::= e1
 *)
-module Grammar11 = struct
+module Grammar11 : Grammar = struct
+  let tokens = []
+
+  let start = e_bottom
 end
 
 (*
@@ -193,5 +219,8 @@ Grammar12: Highly ambiguous for parsing ABABABABABABABA.
    e ::= A
        | e B e
 *)
-module Grammar12 = struct
+module Grammar12 : Grammar = struct
+  let tokens = []
+
+  let start = e_bottom
 end
