@@ -4,11 +4,15 @@ ocamlfind := ocamlfind $(OCAMLOPT) -I .
 compilation_extensions := o,cma,cmo,cmi,cmx,cmxa,cmxo,cmxi
 interface_extensions := mli,
 
-.PHONY: default
+source := types.ml grammars.ml pwz.ml
+
 .PHONY: clean
+.PHONY: clean-all
+.PHONY: compile
+.PHONY: default
 .PHONY: interfaces
 
-default: pwz
+default: compile
 
 clean:
 	$(RM) *.{$(compilation_extensions)}
@@ -20,12 +24,13 @@ clean-all: clean
 pwz: types.ml pwz.ml
 	$(ocamlfind) -o $@ $^
 
-interfaces: pwz.cmi types.mli
+compile: types.ml grammars.ml pwz.ml
+	$(ocamlfind) -c $^
+
+interfaces: $(patsubst %.ml, %.mli, $(sources))
 
 pwz.mli: pwz.ml types.cmi
 	$(ocamlfind) -i $< > $@
-
-%.ml: %.cmi
 
 %.cmi: %.mli
 	$(ocamlfind) -c $^
