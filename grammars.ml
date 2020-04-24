@@ -19,6 +19,26 @@ TEST GRAMMARS FOR PARSING WITH ZIPPERS
    Note that the BNF specifications use the unusual convention that lowercase
    letters represent non-terminals while capital letters represent terminals.
    This is to keep a style more consistent with the reviewer's specification.
+
+A NOTE ON LIMITATIONS IMPOSED BY OCAML
+
+   The OCaml language features a number of limitations that prevent us from
+   expressing grammars as succinctly and clearly as we would like. Namely, these
+   are:
+
+   1. Recursive record definitions must be completely static, i.e., we cannot use
+      "smart constructors" to reduce syntactic overhead.
+   2. Names of functions, values, and variables cannot begin with a capital
+      letter. (We address this by prepending these names with an underscore.)
+   3. Identifiers cannot contain non-ASCII characters. (This means we cannot use
+      the ε character as an identifier.)
+
+   2 and 3 are easy enough to deal with. However, 1 is more of a nuisance. One
+   potential solution would be to write a syntax macro (e.g., using ppx) to
+   allow for easier specification of recursive forms for defining grammars.
+   Unfortunately, none of the authors is sufficiently skilled in the OCaml
+   syntax system to implement this completely within the time limit afforded us
+   by the author response. However, it is something we would like to provide.
 *)
 
 (*
