@@ -21,31 +21,84 @@ TEST GRAMMARS FOR PARSING WITH ZIPPERS
    This is to keep a style more consistent with the reviewer's specification.
 *)
 
+(*
+tok_list_of_string
+
+   This function allows for easy conversion from a string to a list of tokens,
+   useful for parsing the simple grammars encoded here.
+
+   Each grammar contains an association list mapping single characters to token
+   expressions. A string consisting solely of these characters can then be
+   converted to a list of the token expressions.
+
+   Note that the string cannot have any extraneous whitespace or other
+   characters that are not defined in the association list.
+*)
+let tok_list_of_string (str : string) (assocs : (char * tok) list) : tok list =
+  let limit = String.length str in
+
+  let rec tok_list_of_string (idx : int) (acc : tok list) : tok list =
+    if idx < limit
+    then tok_list_of_string (idx + 1) ((List.assoc (String.get str idx) assocs) :: acc)
+    else acc
+
+  in List.rev (tok_list_of_string 0 [])
+
+(*
+Grammar module signature
+
+   This module signature shows the interface through which all of the below
+   grammars can be used.
+*)
 module type Grammar = sig
+  val tokens : (char * tok) list
   val start : exp
 end
 
 (*
-The empty grammar through self-reference.
+parse
+
+   This is an alias for the Pwz module's `parse` function.
+
+   It takes two arguments: a Grammar module G (examples of which are defined
+   below in this file) and a string. The string will be converted to a list of
+   tokens according to the association list G.tokens. Then, the parse will
+   proceed by starting at the G.start grammar expression.
+*)
+let parse ((module G) : (module Grammar)) (str : string) : exp list =
+  Pwz.parse (tok_list_of_string str G.tokens) G.start
+
+(*
+Grammar1: The empty grammar through self-reference.
 
    e ::= e
 *)
 module Grammar1 = struct
+  let tokens = []
+
   let rec e : exp = { m = m_bottom; e' = Seq ("e", [e]) }
 
   let start = e
 end
 
 (*
-The empty grammar, but seems productive.
+Grammar2: The empty grammar, but seems productive.
 
    e ::= A e
 *)
 module Grammar2 = struct
+  let t_A = (1, "A")
+
+  let tokens = [('A', t_A)]
+
+  let rec _A = { m = m_bottom; e' = Tok t_A }
+      and e  = { m = m_bottom; e' = Seq ("e", [_A; e]) }
+
+  let start = e
 end
 
 (*
-Ambiguously empty grammar.
+Grammar3: Ambiguously empty grammar.
 
    e ::= A e
        | e A
@@ -54,7 +107,7 @@ module Grammar3 = struct
 end
 
 (*
-Another tricky empty grammar.
+Grammar4: Another tricky empty grammar.
 
    e ::= A e A
 *)
@@ -62,7 +115,7 @@ module Grammar4 = struct
 end
 
 (*
-Right-recursive with infinite parse forests.
+Grammar5: Right-recursive with infinite parse forests.
 
    e ::= e
        | A e
@@ -72,7 +125,7 @@ module Grammar5 = struct
 end
 
 (*
-Left-recursive with infinite parse forests.
+Grammar6: Left-recursive with infinite parse forests.
 
    e ::= e
        | e A
@@ -82,7 +135,7 @@ module Grammar6 = struct
 end
 
 (*
-Palindromes. Not ambiguous, and not LL(k) or LR(k) for any k.
+Grammar7: Palindromes. Not ambiguous, and not LL(k) or LR(k) for any k.
 
    e ::= A e A
        | B e B
@@ -92,7 +145,7 @@ module Grammar7 = struct
 end
 
 (*
-Hidden production with left-recursion.
+Grammar8: Hidden production with left-recursion.
 
    e1 ::= e2 A
         | ε
@@ -102,7 +155,7 @@ module Grammar8 = struct
 end
 
 (*
-Hidden production with right-recursion.
+Grammar9: Hidden production with right-recursion.
 
    e1 ::= A e2
         | ε
@@ -112,7 +165,7 @@ module Grammar9 = struct
 end
 
 (*
-Empty grammar through mutual reference.
+Grammar10: Empty grammar through mutual reference.
 
    e1 ::= e2
    e2 ::= e1
@@ -125,7 +178,7 @@ module Grammar10 = struct
 end
 
 (*
-Tricky single-token grammar.
+Grammar11: Tricky single-token grammar.
 
    e1 ::= e2
         | A
@@ -135,7 +188,7 @@ module Grammar11 = struct
 end
 
 (*
-Highly ambiguous for parsing ABABABABABABABA.
+Grammar12: Highly ambiguous for parsing ABABABABABABABA.
 
    e ::= A
        | e B e

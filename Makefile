@@ -24,7 +24,7 @@ clean-all: clean
 pwz: types.ml pwz.ml
 	$(ocamlfind) -o $@ $^
 
-compile: types.ml grammars.ml pwz.ml
+compile: types.ml pwz.ml grammars.ml
 	$(ocamlfind) -c $^
 
 interfaces: $(patsubst %.ml, %.mli, $(sources))
