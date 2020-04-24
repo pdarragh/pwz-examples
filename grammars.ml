@@ -84,6 +84,9 @@ Token definitions
 let t_A = (1, "A")
 let t_B = (2, "B")
 
+let tokens_A = [('A', t_A)]
+let tokens_AB = [('A', t_A); ('B', t_B)]
+
 (*
 parse
 
@@ -115,7 +118,7 @@ Grammar1: The empty grammar through self-reference.
 module Grammar1 : Grammar = struct
   let tokens = []
 
-  let rec e : exp = { m = m_bottom; e' = Seq ("e", [e]) }
+  let rec e = { m = m_bottom; e' = Seq ("e", [e]) }
 
   let start = e
 end
@@ -126,7 +129,7 @@ Grammar2: The empty grammar, but seems productive.
    e ::= A e
 *)
 module Grammar2 : Grammar = struct
-  let tokens = [('A', t_A)]
+  let tokens = tokens_A
 
   let rec _A = { m = m_bottom; e' = Tok t_A }
       and e  = { m = m_bottom; e' = Seq ("e", [_A; e]) }
@@ -141,9 +144,14 @@ Grammar3: Ambiguously empty grammar.
        | e A
 *)
 module Grammar3 : Grammar = struct
-  let tokens = []
+  let tokens = tokens_A
 
-  let start = e_bottom
+  let rec _A  = { m = m_bottom; e' = Tok t_A }
+      and _Ae = { m = m_bottom; e' = Seq ("Ae", [_A; e]) }
+      and _eA = { m = m_bottom; e' = Seq ("eA", [e; _A]) }
+      and e   = { m = m_bottom; e' = Alt (ref [ _Ae; _eA ]) }
+
+  let start = e
 end
 
 (*
@@ -152,9 +160,12 @@ Grammar4: Another tricky empty grammar.
    e ::= A e A
 *)
 module Grammar4 : Grammar = struct
-  let tokens = []
+  let tokens = tokens_A
 
-  let start = e_bottom
+  let rec _A = { m = m_bottom; e' = Tok t_A }
+      and e  = { m = m_bottom; e' = Seq ("AeA", [_A; e; _A]) }
+
+  let start = e
 end
 
 (*
@@ -165,7 +176,12 @@ Grammar5: Right-recursive with infinite parse forests.
        | ε
 *)
 module Grammar5 : Grammar = struct
-  let tokens = []
+  let tokens = tokens_A
+
+  let rec _A   = { m = m_bottom; e' = Tok t_A }
+      and _Ae  = { m = m_bottom; e' = Seq ("Ae", [_A; e]) }
+      and _eps = { m = m_bottom; e' = Alt (ref []) }
+      and e    = { m = m_bottom; e' = Alt (ref [e; _Ae; _eps]) }
 
   let start = e_bottom
 end
@@ -178,7 +194,12 @@ Grammar6: Left-recursive with infinite parse forests.
        | ε
 *)
 module Grammar6 : Grammar = struct
-  let tokens = []
+  let tokens = tokens_A
+
+  let rec _A   = { m = m_bottom; e' = Tok t_A }
+      and _eA  = { m = m_bottom; e' = Seq ("eA", [e; _A]) }
+      and _eps = { m = m_bottom; e' = Alt (ref []) }
+      and e    = { m = m_bottom; e' = Alt (ref [e; _eA; _eps]) }
 
   let start = e_bottom
 end
@@ -191,9 +212,16 @@ Grammar7: Palindromes. Not ambiguous, and not LL(k) or LR(k) for any k.
        | ε
 *)
 module Grammar7 : Grammar = struct
-  let tokens = []
+  let tokens = tokens_AB
 
-  let start = e_bottom
+  let rec _A   = { m = m_bottom; e' = Tok t_A }
+      and _B   = { m = m_bottom; e' = Tok t_B }
+      and _AeA = { m = m_bottom; e' = Seq ("AeA", [_A; e; _A]) }
+      and _BeB = { m = m_bottom; e' = Seq ("BeB", [_B; e; _B]) }
+      and _eps = { m = m_bottom; e' = Alt (ref []) }
+      and e    = { m = m_bottom; e' = Alt (ref [_AeA; _BeB; _eps]) }
+
+  let start = e
 end
 
 (*
@@ -204,9 +232,15 @@ Grammar8: Hidden production with left-recursion.
    e2 ::= e1
 *)
 module Grammar8 : Grammar = struct
-  let tokens = []
+  let tokens = tokens_A
 
-  let start = e_bottom
+  let rec _A   = { m = m_bottom; e' = Tok t_A }
+      and _eps = { m = m_bottom; e' = Alt (ref []) }
+      and _e2A = { m = m_bottom; e' = Seq ("e2A", [e2; _A]) }
+      and e1   = { m = m_bottom; e' = Alt (ref [_e2A; _eps]) }
+      and e2   = { m = m_bottom; e' = Seq ("e2", [e1]) }
+
+  let start = e1
 end
 
 (*
@@ -217,9 +251,15 @@ Grammar9: Hidden production with right-recursion.
    e2 ::= e1
 *)
 module Grammar9 : Grammar = struct
-  let tokens = []
+  let tokens = tokens_A
 
-  let start = e_bottom
+  let rec _A   = { m = m_bottom; e' = Tok t_A }
+      and _eps = { m = m_bottom; e' = Alt (ref []) }
+      and _Ae2 = { m = m_bottom; e' = Seq ("Ae2", [_A; e2]) }
+      and e1   = { m = m_bottom; e' = Alt (ref [_Ae2; _eps]) }
+      and e2   = { m = m_bottom; e' = Seq ("e2", [e1]) }
+
+  let start = e1
 end
 
 (*
@@ -245,9 +285,13 @@ Grammar11: Tricky single-token grammar.
    e2 ::= e1
 *)
 module Grammar11 : Grammar = struct
-  let tokens = []
+  let tokens = tokens_A
 
-  let start = e_bottom
+  let rec _A = { m = m_bottom; e' = Tok t_A }
+      and e1 = { m = m_bottom; e' = Alt (ref [e2; _A]) }
+      and e2 = { m = m_bottom; e' = Seq ("e2", [e1]) }
+
+  let start = e1
 end
 
 (*
@@ -257,7 +301,12 @@ Grammar12: Highly ambiguous for parsing ABABABABABABABA.
        | e B e
 *)
 module Grammar12 : Grammar = struct
-  let tokens = []
+  let tokens = tokens_AB
 
-  let start = e_bottom
+  let rec _A   = { m = m_bottom; e' = Tok t_A }
+      and _B   = { m = m_bottom; e' = Tok t_B }
+      and _eBe = { m = m_bottom; e' = Seq ("eBe", [e; _B; e]) }
+      and e    = { m = m_bottom; e' = Alt (ref [_A; _eBe]) }
+
+  let start = e
 end
