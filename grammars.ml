@@ -10,6 +10,9 @@ The empty grammar through self-reference.
    e ::= e
 *)
 module Grammar1 = struct
+  let rec e : exp = { m = m_bottom; e' = Seq ("e", [e]) }
+
+  let start = e
 end
 
 (*
@@ -94,6 +97,10 @@ Empty grammar through mutual reference.
    e2 ::= e1
 *)
 module Grammar10 = struct
+  let rec e1 = { m = m_bottom; e' = Seq ("e1", [e2]) }
+      and e2 = { m = m_bottom; e' = Seq ("e2", [e1]) }
+
+  let start = e1
 end
 
 (*
