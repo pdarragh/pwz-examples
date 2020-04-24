@@ -300,3 +300,19 @@ module Grammar12 : Grammar = struct
 
   let start = e
 end
+
+(*
+Grammar13: An additional ambiguous grammar not supplied by the reviewer.
+
+   e ::= A
+       | ee
+*)
+module Grammar13 : Grammar = struct
+  let tokens = tokens_A
+
+  let rec _A  = { m = m_bottom; e' = Tok t_A }
+      and _ee = { m = m_bottom; e' = Seq ("ee", [e; e]) }
+      and e   = { m = m_bottom; e' = Alt (ref [_A; _ee]) }
+
+  let start = e
+end
