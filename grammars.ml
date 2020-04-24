@@ -97,18 +97,8 @@ parse
    tokens according to the association list G.tokens. Then, the parse will
    proceed by starting at the G.start grammar expression.
 *)
-
-(* TODO: fix the error generated when this is defined:
-
-   File "grammars.ml", line *, characters 46-53:
-   Error: This expression has type exp but an expression was expected of type
-            Types.exp
-
-   * The error refers to the second line below, which begins with "Pwz.parse".
-
 let parse ((module G) : (module Grammar)) (str : string) : exp list =
   Pwz.parse (tok_list_of_string str G.tokens) G.start
-*)
 
 (*
 Grammar1: The empty grammar through self-reference.
