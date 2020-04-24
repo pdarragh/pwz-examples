@@ -56,6 +56,15 @@ module type Grammar = sig
 end
 
 (*
+Token definitions
+
+   These are simple definitions of type Types.tok. They are used by some of the
+   grammars defined below.
+*)
+let t_A = (1, "A")
+let t_B = (2, "B")
+
+(*
 parse
 
    This is an alias for the Pwz module's `parse` function.
@@ -87,8 +96,6 @@ Grammar2: The empty grammar, but seems productive.
    e ::= A e
 *)
 module Grammar2 : Grammar = struct
-  let t_A = (1, "A")
-
   let tokens = [('A', t_A)]
 
   let rec _A = { m = m_bottom; e' = Tok t_A }
