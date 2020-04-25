@@ -197,7 +197,9 @@ module Grammar5 : Grammar = struct
 
   let tests = {
     success = [ ("", 1)
-              ; ("A", 1) ];  (* TODO: This isn't working for some reason. *)
+              ; ("A", 1)
+              ; ("AA", 1)
+              ; ("AAA", 1) ];
     failure = [];
   }
 end
@@ -247,7 +249,9 @@ module Grammar7 : Grammar = struct
     success = [ ("", 1)
               ; ("AA", 1)
               ; ("BB", 1)
-              ; ("ABBA", 1) ];
+              ; ("ABBA", 1)
+              ; ("ABBBBA", 1)
+              ; ("ABBAABBA", 1) ];
     failure = ["A"; "B"; "AAB"; "ABA"];
   }
 end
@@ -270,7 +274,9 @@ module Grammar8 : Grammar = struct
 
   let tests = {
     success = [ ("", 1)
-              ; ("A", 1) ];
+              ; ("A", 1)
+              ; ("AA", 1)
+              ; ("AAA", 1) ];
     failure = [];
   }
 end
@@ -293,7 +299,9 @@ module Grammar9 : Grammar = struct
 
   let tests = {
     success = [ ("", 1)
-              ; ("A", 1) ];
+              ; ("A", 1)
+              ; ("AA", 1)
+              ; ("AAA", 1) ];
     failure = [];
   }
 end
@@ -312,7 +320,7 @@ module Grammar10 : Grammar = struct
 
   let tests = {
     success = [];
-    failure = [""];
+    failure = [""; "A"; "AA"];
   }
 end
 
@@ -332,7 +340,7 @@ module Grammar11 : Grammar = struct
 
   let tests = {
     success = [("A", 1)];
-    failure = [""];
+    failure = [""; "AA"; "AAA"];
   }
 end
 
