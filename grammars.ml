@@ -110,48 +110,6 @@ parse
 let parse ((module G) : (module Grammar)) (str : string) : exp list =
   Pwz.parse (tok_list_of_string str tok_assoc) G.start
 
-let run_grammar_tests ((module G) : (module Grammar)) : ((int list) * (int list)) =
-  (*
-  filter_opt
-
-     Filter out the None elements from a list of 'a option.
-  *)
-  let filter_opt (elems : ('a option) list) : 'a list =
-    let rec filter_opt (elems : ('a option) list) (acc : 'a list) : 'a list =
-      match elems with
-      |                   [] -> acc
-      |     (None :: elems') -> filter_opt elems' acc
-      | ((Some a) :: elems') -> filter_opt elems' (a :: acc)
-    in List.rev (filter_opt elems [])
-  in
-
-  (*
-  test_case
-
-     Attempt to parse the given test. If the resulting parse forest contains the
-     expected number of results, return None (indicating nothing unusual
-     happened). Otherwise, return a Some wrapped around the index of this test
-     case, which can later be used to see which test failed.
-  *)
-  let test_case (idx : int) ((str, expected_num_of_parses) : (string * int)) : int option =
-    if List.length (parse (module G) str) == expected_num_of_parses
-    then None
-    else Some (idx)
-
-  in (filter_opt (List.mapi test_case G.tests.success),
-      filter_opt (List.mapi (fun i s -> test_case i (s, 0)) G.tests.failure))
-
-(*
-grammar_tests_pass
-
-   This function runs the tests for the given Grammar, and returns a boolean
-   indicating whether those tests all passed as expected or not.
-*)
-let grammar_tests_pass ((module G) : (module Grammar)) : bool =
-  match (run_grammar_tests (module G)) with
-  | ([], []) -> true
-  | _        -> false
-
 (*
 Grammar1: The empty grammar through self-reference.
 
@@ -282,8 +240,10 @@ module Grammar7 : Grammar = struct
   let start = e
 
   let tests = {
-    success = [];
-    failure = [];
+    success = [ ("", 0)
+              ; ("AA", 1)
+              ];
+    failure = ["A"];
   }
 end
 
@@ -407,3 +367,96 @@ module Grammar13 : Grammar = struct
     failure = [];
   }
 end
+
+(* A list of all the grammars put together. *)
+let grammars : ((module Grammar) list) =
+  [ (module Grammar1)
+  ; (module Grammar2)
+  ; (module Grammar3)
+  ; (module Grammar4)
+  ; (module Grammar5)
+  ; (module Grammar6)
+  ; (module Grammar7)
+  ; (module Grammar8)
+  ; (module Grammar9)
+  ; (module Grammar10)
+  ; (module Grammar11)
+  ; (module Grammar12)
+  ; (module Grammar13)
+  ]
+
+(*
+filter_opt
+
+   Filter out the None elements from a list of 'a option.
+*)
+let filter_opt (elems : ('a option) list) : 'a list =
+  let rec filter_opt (elems : ('a option) list) (acc : 'a list) : 'a list =
+    match elems with
+    |                   [] -> acc
+    |     (None :: elems') -> filter_opt elems' acc
+    | ((Some a) :: elems') -> filter_opt elems' (a :: acc)
+  in List.rev (filter_opt elems [])
+
+(*
+grammar_test_results
+
+   If all tests pass successfully, this list should be empty.
+
+   If this list is not empty, then each entry is a pair whose first element is
+   the index of a grammar that had failing test cases, and whose second element
+   is a pair whose elements are lists containing the indices of failed expected-
+   to-succeed tests and failed expected-to-fail tests, respectively.
+*)
+let grammar_test_results : (int * ((int list) * (int list))) list =
+  let test_grammar (idx : int) ((module G) : (module Grammar)) : (int * ((int list) * (int list))) option =
+    (*
+    test_case
+
+       Attempt to parse the given test. If the resulting parse forest contains the
+       expected number of results, return None (indicating nothing unusual
+       happened). Otherwise, return a Some wrapped around the index of this test
+       case, which can later be used to see which test failed.
+    *)
+    let test_case (idx : int) ((str, expected_num_of_parses) : (string * int)) : int option =
+      if List.length (parse (module G) str) == expected_num_of_parses
+      then None
+      else Some (idx)
+    in
+    (*
+    results
+
+       A pair containing two lists: one containing indexes of failed test cases
+       for inputs that should have succeeded, and one for those that should have
+       failed.
+    *)
+    let results = (filter_opt (List.mapi test_case G.tests.success),
+                   filter_opt (List.mapi (fun i s -> test_case i (s, 0)) G.tests.failure))
+    in match results with
+    | ([], []) -> None
+    | _        -> Some (idx, results)
+  in filter_opt (List.mapi test_grammar grammars)
+
+(*
+print_test_results
+
+   Prints out the results of tests in a relatively easy-to-read way.
+*)
+let print_test_results () : unit =
+  let print_result ((g_idx, (s_idxs, f_idxs)) : (int * ((int list) * (int list)))) : unit =
+    let (module G) : (module Grammar) = List.nth grammars g_idx in
+    let string_of_success_case (idx : int) : string =
+      Printf.sprintf "%d. \"%s\""
+        (idx + 1)
+        (fst (List.nth G.tests.success idx))
+    in
+    let string_of_failure_case (idx : int) : string =
+      Printf.sprintf "%d. \"%s\""
+        (idx + 1)
+        (List.nth G.tests.failure idx)
+    in Printf.printf
+      "Grammar%d had failing test cases:\n  success cases: %s\n  failure cases: %s\n"
+      (g_idx + 1)
+      (String.concat "\n    " (List.map string_of_success_case s_idxs))
+      (String.concat "\n    " (List.map string_of_failure_case f_idxs))
+  in List.iter print_result grammar_test_results
