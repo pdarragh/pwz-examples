@@ -190,7 +190,7 @@ Grammar5: Right-recursive with infinite parse forests.
 module Grammar5 : Grammar = struct
   let rec _A   = { m = m_bottom; e' = Tok t_A }
       and _Ae  = { m = m_bottom; e' = Seq ("Ae", [_A; e]) }
-      and _eps = { m = m_bottom; e' = Alt (ref []) }
+      and _eps = { m = m_bottom; e' = Seq ("ε", []) }
       and e    = { m = m_bottom; e' = Alt (ref [e; _Ae; _eps]) }
 
   let start = e_bottom
@@ -211,7 +211,7 @@ Grammar6: Left-recursive with infinite parse forests.
 module Grammar6 : Grammar = struct
   let rec _A   = { m = m_bottom; e' = Tok t_A }
       and _eA  = { m = m_bottom; e' = Seq ("eA", [e; _A]) }
-      and _eps = { m = m_bottom; e' = Alt (ref []) }
+      and _eps = { m = m_bottom; e' = Seq ("ε", []) }
       and e    = { m = m_bottom; e' = Alt (ref [e; _eA; _eps]) }
 
   let start = e_bottom
@@ -234,7 +234,7 @@ module Grammar7 : Grammar = struct
       and _B   = { m = m_bottom; e' = Tok t_B }
       and _AeA = { m = m_bottom; e' = Seq ("AeA", [_A; e; _A]) }
       and _BeB = { m = m_bottom; e' = Seq ("BeB", [_B; e; _B]) }
-      and _eps = { m = m_bottom; e' = Alt (ref []) }
+      and _eps = { m = m_bottom; e' = Seq ("ε", []) }
       and e    = { m = m_bottom; e' = Alt (ref [_AeA; _BeB; _eps]) }
 
   let start = e
@@ -256,7 +256,7 @@ Grammar8: Hidden production with left-recursion.
 *)
 module Grammar8 : Grammar = struct
   let rec _A   = { m = m_bottom; e' = Tok t_A }
-      and _eps = { m = m_bottom; e' = Alt (ref []) }
+      and _eps = { m = m_bottom; e' = Seq ("ε", []) }
       and _e2A = { m = m_bottom; e' = Seq ("e2A", [e2; _A]) }
       and e1   = { m = m_bottom; e' = Alt (ref [_e2A; _eps]) }
       and e2   = { m = m_bottom; e' = Seq ("e2", [e1]) }
@@ -278,7 +278,7 @@ Grammar9: Hidden production with right-recursion.
 *)
 module Grammar9 : Grammar = struct
   let rec _A   = { m = m_bottom; e' = Tok t_A }
-      and _eps = { m = m_bottom; e' = Alt (ref []) }
+      and _eps = { m = m_bottom; e' = Seq ("ε", []) }
       and _Ae2 = { m = m_bottom; e' = Seq ("Ae2", [_A; e2]) }
       and e1   = { m = m_bottom; e' = Alt (ref [_Ae2; _eps]) }
       and e2   = { m = m_bottom; e' = Seq ("e2", [e1]) }
