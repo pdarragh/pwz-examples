@@ -71,7 +71,7 @@ Testing lists
    that should either produce successful parses or should result in no parses.
 *)
 type tests = {
-  success : string list;
+  success : (string * int) list;
   failure : string list;
 }
 
@@ -110,6 +110,48 @@ parse
 let parse ((module G) : (module Grammar)) (str : string) : exp list =
   Pwz.parse (tok_list_of_string str tok_assoc) G.start
 
+let run_grammar_tests ((module G) : (module Grammar)) : ((int list) * (int list)) =
+  (*
+  filter_opt
+
+     Filter out the None elements from a list of 'a option.
+  *)
+  let filter_opt (elems : ('a option) list) : 'a list =
+    let rec filter_opt (elems : ('a option) list) (acc : 'a list) : 'a list =
+      match elems with
+      |                   [] -> acc
+      |     (None :: elems') -> filter_opt elems' acc
+      | ((Some a) :: elems') -> filter_opt elems' (a :: acc)
+    in List.rev (filter_opt elems [])
+  in
+
+  (*
+  test_case
+
+     Attempt to parse the given test. If the resulting parse forest contains the
+     expected number of results, return None (indicating nothing unusual
+     happened). Otherwise, return a Some wrapped around the index of this test
+     case, which can later be used to see which test failed.
+  *)
+  let test_case (idx : int) ((str, expected_num_of_parses) : (string * int)) : int option =
+    if List.length (parse (module G) str) == expected_num_of_parses
+    then None
+    else Some (idx)
+
+  in (filter_opt (List.mapi test_case G.tests.success),
+      filter_opt (List.mapi (fun i s -> test_case i (s, 0)) G.tests.failure))
+
+(*
+grammar_tests_pass
+
+   This function runs the tests for the given Grammar, and returns a boolean
+   indicating whether those tests all passed as expected or not.
+*)
+let grammar_tests_pass ((module G) : (module Grammar)) : bool =
+  match (run_grammar_tests (module G)) with
+  | ([], []) -> true
+  | _        -> false
+
 (*
 Grammar1: The empty grammar through self-reference.
 
@@ -121,7 +163,7 @@ module Grammar1 : Grammar = struct
   let start = e
 
   let tests = {
-    success = [""];
+    success = [("", 0)];
     failure = ["A"; "AB"; "BB"; "ABA"];
   }
 end
@@ -138,8 +180,8 @@ module Grammar2 : Grammar = struct
   let start = e
 
   let tests = {
-    success = [];
-    failure = [];
+    success = [("", 0)];
+    failure = ["A"; "AA"; "AAAAAAAAAAAAAAAAAAAAAAA"];
   }
 end
 
@@ -158,8 +200,8 @@ module Grammar3 : Grammar = struct
   let start = e
 
   let tests = {
-    success = [];
-    failure = [];
+    success = [("", 0)];
+    failure = ["A"; "AA"; "AAA"; "AAAA"];
   }
 end
 
@@ -175,8 +217,8 @@ module Grammar4 : Grammar = struct
   let start = e
 
   let tests = {
-    success = [];
-    failure = [];
+    success = [("", 0)];
+    failure = ["A"; "AA"; "AAA"; "AAAA"];
   }
 end
 
