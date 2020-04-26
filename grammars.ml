@@ -474,6 +474,7 @@ grammar_test_results
 *)
 let grammar_test_results () : (int * ((int list) * (int list))) list =
   let test_grammar (idx : int) ((module G) : (module Grammar)) : (int * ((int list) * (int list))) option =
+    Printf.printf "Testing Grammar%d...\n" (idx + 1);
     (*
     test_case
 
@@ -483,13 +484,14 @@ let grammar_test_results () : (int * ((int list) * (int list))) list =
        case, which can later be used to see which test failed.
     *)
     let test_case (idx : int) ((str, maybe_expected_num_of_parses) : (string * (int option))) : int option =
+      Printf.printf "    case %d: \"%s\"..." (idx + 1) str;
       let success = match maybe_expected_num_of_parses with
         | Some expected_num_of_parses -> List.length (parse_to_ast (module G) str) == expected_num_of_parses
         | None                        -> List.length (parse (module G) str) > 0
       in
       if success
-      then None
-      else Some (idx)
+      then (Printf.printf "✅\n"; None)
+      else (Printf.printf "❌\n"; Some (idx))
     in
     (*
     results
@@ -498,8 +500,10 @@ let grammar_test_results () : (int * ((int list) * (int list))) list =
        for inputs that should have succeeded, and one for those that should have
        failed.
     *)
-    let results = (filter_opt (List.mapi test_case G.tests.success),
-                   filter_opt (List.mapi (fun i s -> test_case i (s, Some 0)) G.tests.failure))
+    let results = ((Printf.printf "  Testing success cases...\n";
+                    filter_opt (List.mapi test_case G.tests.success)),
+                   (Printf.printf "  Testing failure cases...\n";
+                    filter_opt (List.mapi (fun i s -> test_case i (s, Some 0)) G.tests.failure)))
     in match results with
     | ([], []) -> None
     | _        -> Some (idx, results)
