@@ -117,8 +117,22 @@ parse
    tokens according to the association list G.tokens. Then, the parse will
    proceed by starting at the G.start grammar expression.
 *)
+
 let parse ((module G) : (module Grammar)) (str : string) : exp list =
   Pwz.parse (tok_list_of_string str tok_assoc) G.start
+
+(*
+parse_to_ast
+
+   This function wraps the above `parse` function.
+
+   It converts the list of expressions produced by parsing into a list of AST
+   elements. This is useful for separating ambiguous parse results into separate
+   parse trees, instead of the `parse` function's result (which is often an Alt
+   containing multiple children).
+*)
+let parse_to_ast ((module G) : (module Grammar)) (str : string) : ast list =
+  ast_list_of_exp_list (parse (module G) str)
 
 (*
 Grammar1: The empty grammar through self-reference.
