@@ -36,6 +36,18 @@ A NOTE ON LIMITATIONS IMPOSED BY OCAML
    Unfortunately, none of the authors is sufficiently skilled in the OCaml
    syntax system to implement this completely within the time limit afforded us
    by the author response. However, it is something we would like to provide.
+
+A NOTE ON AST EXTRACTION
+
+   For test cases that are expected to return a finite number of results, we use
+   the function `ast_list_of_exp_list` from the Ast module (ast.ml) to extract
+   an AST from the resulting parse forest. This allows us to enumerate the
+   number of results arising from ambiguous grammars.
+
+   However, the process of extraction can be exponential. In our paper, and also
+   here, we do not factor this extraction into the cost of parsing. The parse
+   itself completes prior to any extraction taking place. The extraction is
+   merely a (lossy) method of better quantifying what the parse produced.
 *)
 
 (*
