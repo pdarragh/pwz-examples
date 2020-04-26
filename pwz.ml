@@ -68,8 +68,8 @@ let init_zipper (e : exp) : zipper =
   } in
   (e', m_seq)
 
-let unwrap_top_exp (e : exp) : exp =
-  match e.e' with
+let unwrap_top_exp (e1 : exp) : exp =
+  match e1.e' with
   | Seq (_, [_; e2]) -> e2
   | _                -> failwith "Failed to unwrap top exp!"
 
