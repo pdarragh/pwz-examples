@@ -38,6 +38,3 @@ and m_bottom : mem = {
   end_pos    = p_bottom;
   result     = e_bottom;
 }
-
-let worklist : (zipper list) ref = ref []
-let tops     :    (exp list) ref = ref []
