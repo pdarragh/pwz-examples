@@ -123,13 +123,15 @@ let tok_assoc = [('A', t_A); ('B', t_B)]
 
 (*
 parse
+instrumented_parse
 
-   This is a wrapper for the Pwz module's `parse` function.
+   These are wrappers for the Pwz module's `parse` and `instrumented_parse`
+   functions.
 
-   It takes two arguments: a Grammar module G (examples of which are defined
-   below in this file) and a string. The string will be converted to a list of
-   tokens according to the association list G.tokens. Then, the parse will
-   proceed by starting at the G.start grammar expression.
+   They each take two arguments: a Grammar module G (examples of which are
+   defined below in this file) and a string. The string will be converted to a
+   list of tokens according to the association list G.tokens. Then, the parse
+   will proceed by starting at the G.start grammar expression.
 *)
 
 let parse ((module G) : (module Grammar)) (str : string) : exp list =
