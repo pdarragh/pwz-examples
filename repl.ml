@@ -1,5 +1,5 @@
 #mod_use "types.ml";;
-#mod_use "ast.ml";;
+#mod_use "cst.ml";;
 #mod_use "pwz.ml";;
 #mod_use "grammars.ml";;
 
