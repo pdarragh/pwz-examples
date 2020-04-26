@@ -68,16 +68,18 @@ Testing lists
    that should either produce successful parses or should result in no parses.
 
    tests.success is a list of pairs. The first element of these pairs is a
-   string, which is the test input. The second element is an integer, which
-   corresponds to the number of trees the algorithm is expected to produce upon
-   successful parsing.
+   string, which is the test input. The second element is an optional integer.
+   When this integer is present in a Some, its value corresponds to the number
+   of trees the algorithm is expected to produce upon successful parsing. If the
+   value is a None, then it is merely expected that the parse produces a
+   positive result (i.e., there are more than 0 elements returned).
 
    tests.failure is a list of strings, which are simply test inputs. A failed
    parse is represented as an empty list in all cases, so no extra integer is
    needed for these.
 *)
 type tests = {
-  success : (string * int) list;
+  success : (string * (int option)) list;
   failure : string list;
 }
 
@@ -130,6 +132,11 @@ parse_to_ast
    elements. This is useful for separating ambiguous parse results into separate
    parse trees, instead of the `parse` function's result (which is often an Alt
    containing multiple children).
+
+   NOTE: This function eagerly extracts expressions into AST nodes. Some of the
+   below grammars are designed to produce an infinite number of resulting
+   expressions, which means that this function would be tasked with producing an
+   eager infinite list. We recommend against its use in these cases.
 *)
 let parse_to_ast ((module G) : (module Grammar)) (str : string) : ast list =
   ast_list_of_exp_list (parse (module G) str)
@@ -220,10 +227,10 @@ module Grammar5 : Grammar = struct
   let start = e
 
   let tests = {
-    success = [ ("", 1)
-              ; ("A", 1)
-              ; ("AA", 1)
-              ; ("AAA", 1) ];
+    success = [ ("", None)
+              ; ("A", None)
+              ; ("AA", None)
+              ; ("AAA", None) ];
     failure = [];
   }
 end
@@ -244,10 +251,10 @@ module Grammar6 : Grammar = struct
   let start = e
 
   let tests = {
-    success = [ ("", 1)
-              ; ("A", 1)
-              ; ("AA", 1)
-              ; ("AAA", 1) ];
+    success = [ ("", None)
+              ; ("A", None)
+              ; ("AA", None)
+              ; ("AAA", None) ];
     failure = [];
   }
 end
@@ -270,12 +277,12 @@ module Grammar7 : Grammar = struct
   let start = e
 
   let tests = {
-    success = [ ("", 1)
-              ; ("AA", 1)
-              ; ("BB", 1)
-              ; ("ABBA", 1)
-              ; ("ABBBBA", 1)
-              ; ("ABBAABBA", 1) ];
+    success = [ ("", Some 1)
+              ; ("AA", Some 1)
+              ; ("BB", Some 1)
+              ; ("ABBA", Some 1)
+              ; ("ABBBBA", Some 1)
+              ; ("ABBAABBA", Some 1) ];
     failure = ["A"; "B"; "AAB"; "ABA"];
   }
 end
@@ -297,10 +304,10 @@ module Grammar8 : Grammar = struct
   let start = e1
 
   let tests = {
-    success = [ ("", 1)
-              ; ("A", 1)
-              ; ("AA", 1)
-              ; ("AAA", 1) ];
+    success = [ ("", Some 1)
+              ; ("A", Some 1)
+              ; ("AA", Some 1)
+              ; ("AAA", Some 1) ];
     failure = [];
   }
 end
@@ -322,10 +329,10 @@ module Grammar9 : Grammar = struct
   let start = e1
 
   let tests = {
-    success = [ ("", 1)
-              ; ("A", 1)
-              ; ("AA", 1)
-              ; ("AAA", 1) ];
+    success = [ ("", Some 1)
+              ; ("A", Some 1)
+              ; ("AA", Some 1)
+              ; ("AAA", Some 1) ];
     failure = [];
   }
 end
@@ -363,7 +370,7 @@ module Grammar11 : Grammar = struct
   let start = e1
 
   let tests = {
-    success = [("A", 1)];
+    success = [("A", Some 1)];
     failure = [""; "AA"; "AAA"];
   }
 end
@@ -383,10 +390,10 @@ module Grammar12 : Grammar = struct
   let start = e
 
   let tests = {
-    success = [ ("A", 1)
-              ; ("ABA", 1)
-              ; ("ABABA", 1)
-              ; ("ABABABABABABABA", 1) ];
+    success = [ ("A", Some 1)
+              ; ("ABA", Some 1)
+              ; ("ABABA", Some 2)
+              ; ("ABABABABABABABA", Some 429) ];
     failure = [""];
   }
 end
@@ -405,10 +412,10 @@ module Grammar13 : Grammar = struct
   let start = e
 
   let tests = {
-    success = [ ("A", 1)
-              ; ("AA", 1)
-              ; ("AAA", 1)
-              ; ("AAAA", 1) ];
+    success = [ ("A", Some 1)
+              ; ("AA", Some 1)
+              ; ("AAA", Some 2)
+              ; ("AAAA", Some 5) ];
     failure = [""];
   }
 end
@@ -453,7 +460,7 @@ grammar_test_results
    is a pair whose elements are lists containing the indices of failed expected-
    to-succeed tests and failed expected-to-fail tests, respectively.
 *)
-let grammar_test_results : (int * ((int list) * (int list))) list =
+let grammar_test_results () : (int * ((int list) * (int list))) list =
   let test_grammar (idx : int) ((module G) : (module Grammar)) : (int * ((int list) * (int list))) option =
     (*
     test_case
@@ -463,8 +470,12 @@ let grammar_test_results : (int * ((int list) * (int list))) list =
        happened). Otherwise, return a Some wrapped around the index of this test
        case, which can later be used to see which test failed.
     *)
-    let test_case (idx : int) ((str, expected_num_of_parses) : (string * int)) : int option =
-      if List.length (parse (module G) str) == expected_num_of_parses
+    let test_case (idx : int) ((str, maybe_expected_num_of_parses) : (string * (int option))) : int option =
+      let success = match maybe_expected_num_of_parses with
+        | Some expected_num_of_parses -> List.length (parse_to_ast (module G) str) == expected_num_of_parses
+        | None                        -> List.length (parse (module G) str) > 0
+      in
+      if success
       then None
       else Some (idx)
     in
@@ -476,7 +487,7 @@ let grammar_test_results : (int * ((int list) * (int list))) list =
        failed.
     *)
     let results = (filter_opt (List.mapi test_case G.tests.success),
-                   filter_opt (List.mapi (fun i s -> test_case i (s, 0)) G.tests.failure))
+                   filter_opt (List.mapi (fun i s -> test_case i (s, Some 0)) G.tests.failure))
     in match results with
     | ([], []) -> None
     | _        -> Some (idx, results)
@@ -504,6 +515,6 @@ let print_test_results () : unit =
       (g_idx + 1)
       (String.concat "\n    " (List.map string_of_success_case s_idxs))
       (String.concat "\n    " (List.map string_of_failure_case f_idxs))
-  in match grammar_test_results with
+  in match grammar_test_results () with
   | [] -> Printf.printf "All tests passed successfully."
-  | _  -> List.iter print_result grammar_test_results
+  | _  -> List.iter print_result (grammar_test_results ())
