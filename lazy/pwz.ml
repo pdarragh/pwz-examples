@@ -6,6 +6,7 @@ let derive (p : pos) ((t, l) : tok) ((e', m) : zipper) : unit =
 
   let rec d_d (c : cxt) (e : exp) : unit =
     count := !count + 1;
+    let e = Lazy.force e in
     if p == e.m.start_pos
     then begin
       e.m.parents <- c :: e.m.parents;
@@ -38,7 +39,7 @@ let derive (p : pos) ((t, l) : tok) ((e', m) : zipper) : unit =
 
   and d_u (e' : exp') (m : mem) : unit =
     count := !count + 1;
-    let e = { m = m_bottom; e' = e' } in
+    let e = lazy { m = m_bottom; e' = e' } in
     m.end_pos <- p;
     m.result <- e;
     List.iter (fun c -> d_u' e c) m.parents
@@ -50,7 +51,7 @@ let derive (p : pos) ((t, l) : tok) ((e', m) : zipper) : unit =
     | SeqC (m, l', es, [])            -> d_u (Seq (l', List.rev (e :: es))) m
     | SeqC (m, l', left, e' :: right) -> d_d (SeqC (m, l', e :: left, right)) e'
     | AltC m                          -> if p == m.end_pos
-                                         then match m.result.e' with
+                                         then match (Lazy.force m.result).e' with
                                            | Alt es -> es := e :: !es
                                            | _ -> failwith "Failed match in the AltC clause of d_u'!"
                                          else d_u (Alt (ref [e])) m
@@ -75,7 +76,7 @@ let init_zipper (e : exp) : zipper =
   (e', m_seq)
 
 let unwrap_top_exp (e1 : exp) : exp =
-  match e1.e' with
+  match (Lazy.force e1).e' with
   | Seq (_, [_; e2]) -> e2
   | _                -> failwith "Failed to unwrap top exp!"
 

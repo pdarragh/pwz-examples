@@ -164,7 +164,7 @@ Grammar1: The empty grammar through self-reference.
    e ::= e
 *)
 module Grammar1 : Grammar = struct
-  let rec e = { m = m_bottom; e' = Seq ("e", [e]) }
+  let rec e = lazy (seq "e" [e])
 
   let start = e
 
@@ -180,8 +180,8 @@ Grammar2: The empty grammar, but seems productive.
    e ::= A e
 *)
 module Grammar2 : Grammar = struct
-  let rec _A = { m = m_bottom; e' = Tok t_A }
-      and e  = { m = m_bottom; e' = Seq ("e", [_A; e]) }
+  let rec _A = lazy (tok t_A)
+      and e  = lazy (seq "e" [_A; e])
 
   let start = e
 
@@ -198,10 +198,10 @@ Grammar3: Ambiguously empty grammar.
        | e A
 *)
 module Grammar3 : Grammar = struct
-  let rec _A  = { m = m_bottom; e' = Tok t_A }
-      and _Ae = { m = m_bottom; e' = Seq ("Ae", [_A; e]) }
-      and _eA = { m = m_bottom; e' = Seq ("eA", [e; _A]) }
-      and e   = { m = m_bottom; e' = Alt (ref [ _Ae; _eA ]) }
+  let rec _A  = lazy (tok t_A)
+      and _Ae = lazy (seq "Ae" [_A; e])
+      and _eA = lazy (seq "eA" [e; _A])
+      and e   = lazy (alt [_Ae; _eA])
 
   let start = e
 
@@ -217,8 +217,8 @@ Grammar4: Another tricky empty grammar.
    e ::= A e A
 *)
 module Grammar4 : Grammar = struct
-  let rec _A = { m = m_bottom; e' = Tok t_A }
-      and e  = { m = m_bottom; e' = Seq ("AeA", [_A; e; _A]) }
+  let rec _A = lazy (tok t_A)
+      and e  = lazy (seq "AeA" [_A; e; _A])
 
   let start = e
 
@@ -236,10 +236,10 @@ Grammar5: Right-recursive with infinite parse forests.
        | ε
 *)
 module Grammar5 : Grammar = struct
-  let rec _A   = { m = m_bottom; e' = Tok t_A }
-      and _Ae  = { m = m_bottom; e' = Seq ("Ae", [_A; e]) }
-      and _eps = { m = m_bottom; e' = Seq ("ε", []) }
-      and e    = { m = m_bottom; e' = Alt (ref [e; _Ae; _eps]) }
+  let rec _A   = lazy (tok t_A)
+      and _Ae  = lazy (seq "Ae" [_A; e])
+      and _eps = lazy (seq "ε" [])
+      and e    = lazy (alt [e; _Ae; _eps])
 
   let start = e
 
@@ -260,10 +260,10 @@ Grammar6: Left-recursive with infinite parse forests.
        | ε
 *)
 module Grammar6 : Grammar = struct
-  let rec _A   = { m = m_bottom; e' = Tok t_A }
-      and _eA  = { m = m_bottom; e' = Seq ("eA", [e; _A]) }
-      and _eps = { m = m_bottom; e' = Seq ("ε", []) }
-      and e    = { m = m_bottom; e' = Alt (ref [e; _eA; _eps]) }
+  let rec _A   = lazy (tok t_A)
+      and _eA  = lazy (seq "eA" [e; _A])
+      and _eps = lazy (seq "ε" [])
+      and e    = lazy (alt [e; _eA; _eps])
 
   let start = e
 
@@ -284,12 +284,12 @@ Grammar7: Palindromes. Not ambiguous, and not LL(k) or LR(k) for any k.
        | ε
 *)
 module Grammar7 : Grammar = struct
-  let rec _A   = { m = m_bottom; e' = Tok t_A }
-      and _B   = { m = m_bottom; e' = Tok t_B }
-      and _AeA = { m = m_bottom; e' = Seq ("AeA", [_A; e; _A]) }
-      and _BeB = { m = m_bottom; e' = Seq ("BeB", [_B; e; _B]) }
-      and _eps = { m = m_bottom; e' = Seq ("ε", []) }
-      and e    = { m = m_bottom; e' = Alt (ref [_AeA; _BeB; _eps]) }
+  let rec _A   = lazy (tok t_A)
+      and _B   = lazy (tok t_B)
+      and _AeA = lazy (seq "AeA" [_A; e; _A])
+      and _BeB = lazy (seq "BeB" [_B; e; _B])
+      and _eps = lazy (seq "ε" [])
+      and e    = lazy (alt [_AeA; _BeB; _eps])
 
   let start = e
 
@@ -312,11 +312,11 @@ Grammar8: Hidden production with left-recursion.
    e2 ::= e1
 *)
 module Grammar8 : Grammar = struct
-  let rec _A   = { m = m_bottom; e' = Tok t_A }
-      and _eps = { m = m_bottom; e' = Seq ("ε", []) }
-      and _e2A = { m = m_bottom; e' = Seq ("e2A", [e2; _A]) }
-      and e1   = { m = m_bottom; e' = Alt (ref [_e2A; _eps]) }
-      and e2   = { m = m_bottom; e' = Seq ("e2", [e1]) }
+  let rec _A   = lazy (tok t_A)
+      and _eps = lazy (seq "ε" [])
+      and _e2A = lazy (seq "e2A" [e2; _A])
+      and e1   = lazy (alt [_e2A; _eps])
+      and e2   = lazy (seq "e2" [e1])
 
   let start = e1
 
@@ -337,11 +337,11 @@ Grammar9: Hidden production with right-recursion.
    e2 ::= e1
 *)
 module Grammar9 : Grammar = struct
-  let rec _A   = { m = m_bottom; e' = Tok t_A }
-      and _eps = { m = m_bottom; e' = Seq ("ε", []) }
-      and _Ae2 = { m = m_bottom; e' = Seq ("Ae2", [_A; e2]) }
-      and e1   = { m = m_bottom; e' = Alt (ref [_Ae2; _eps]) }
-      and e2   = { m = m_bottom; e' = Seq ("e2", [e1]) }
+  let rec _A   = lazy (tok t_A)
+      and _eps = lazy (seq "ε" [])
+      and _Ae2 = lazy (seq "Ae2" [_A; e2])
+      and e1   = lazy (alt [_Ae2; _eps])
+      and e2   = lazy (seq "e2" [e1])
 
   let start = e1
 
@@ -361,8 +361,8 @@ Grammar10: Empty grammar through mutual reference.
    e2 ::= e1
 *)
 module Grammar10 : Grammar = struct
-  let rec e1 = { m = m_bottom; e' = Seq ("e1", [e2]) }
-      and e2 = { m = m_bottom; e' = Seq ("e2", [e1]) }
+  let rec e1 = lazy (seq "e1" [e2])
+      and e2 = lazy (seq "e2" [e1])
 
   let start = e1
 
@@ -380,9 +380,9 @@ Grammar11: Tricky single-token grammar.
    e2 ::= e1
 *)
 module Grammar11 : Grammar = struct
-  let rec _A = { m = m_bottom; e' = Tok t_A }
-      and e1 = { m = m_bottom; e' = Alt (ref [e2; _A]) }
-      and e2 = { m = m_bottom; e' = Seq ("e2", [e1]) }
+  let rec _A = lazy (tok t_A)
+      and e1 = lazy (alt [e2; _A])
+      and e2 = lazy (seq "e2" [e1])
 
   let start = e1
 
@@ -399,10 +399,10 @@ Grammar12: Highly ambiguous for parsing ABABABABABABABA.
        | e B e
 *)
 module Grammar12 : Grammar = struct
-  let rec _A   = { m = m_bottom; e' = Tok t_A }
-      and _B   = { m = m_bottom; e' = Tok t_B }
-      and _eBe = { m = m_bottom; e' = Seq ("eBe", [e; _B; e]) }
-      and e    = { m = m_bottom; e' = Alt (ref [_A; _eBe]) }
+  let rec _A   = lazy (tok t_A)
+      and _B   = lazy (tok t_B)
+      and _eBe = lazy (seq "eBe" [e; _B; e])
+      and e    = lazy (alt [_A; _eBe])
 
   let start = e
 
@@ -422,9 +422,9 @@ Grammar13: An ambiguous double-production grammar.
        | ee
 *)
 module Grammar13 : Grammar = struct
-  let rec _A  = { m = m_bottom; e' = Tok t_A }
-      and _ee = { m = m_bottom; e' = Seq ("ee", [e; e]) }
-      and e   = { m = m_bottom; e' = Alt (ref [_A; _ee]) }
+  let rec _A  = lazy (tok t_A)
+      and _ee = lazy (seq "ee" [e; e])
+      and e   = lazy (alt [_A; _ee])
 
   let start = e
 
