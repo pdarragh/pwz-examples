@@ -3,22 +3,18 @@ open Types
 (*
 TEST GRAMMARS FOR PARSING WITH ZIPPERS
 
-   These are test grammars issued by a reviewer to convince them of the general
-   properties we claim about PwZ.
+   This file provides grammars and (simple) test examples to convince readers of
+   the properties we claim about PwZ in our paper.
 
    Each grammar conforms to the Grammar module signature. This allows them to be
    kept separate and use similar naming conventions. We chose the first
    production of each grammar to be used as the `start` production.
 
    The grammars each have a comment above that explain the purpose of the
-   grammar and show it written in a BNF format. These are more-or-less copied
-   directly from the review, though some liberties were taken with formatting.
-   Specifically, all alternates appear on separate lines, and spaces have been
-   inserted between symbols for clarity.
+   grammar and show it written in a BNF format.
 
    Note that the BNF specifications use the unusual convention that lowercase
    letters represent non-terminals while capital letters represent terminals.
-   This is to keep a style more consistent with the reviewer's specification.
 
 A NOTE ON LIMITATIONS IMPOSED BY OCAML
 
@@ -69,6 +65,15 @@ Testing lists
 
    This record is used within each grammar definition to supply example strings
    that should either produce successful parses or should result in no parses.
+
+   tests.success is a list of pairs. The first element of these pairs is a
+   string, which is the test input. The second element is an integer, which
+   corresponds to the number of trees the algorithm is expected to produce upon
+   successful parsing.
+
+   tests.failure is a list of strings, which are simply test inputs. A failed
+   parse is represented as an empty list in all cases, so no extra integer is
+   needed for these.
 *)
 type tests = {
   success : (string * int) list;
@@ -91,6 +96,10 @@ Token definitions
 
    These are simple definitions of type Types.tok. They are used by some of the
    grammars defined below.
+
+   The association list maps characters to tokens. This list can be used by the
+   tok_list_of_string function defined above in the conversion of strings to
+   tokens.
 *)
 let t_A = (1, "A")
 let t_B = (2, "B")
@@ -100,7 +109,7 @@ let tok_assoc = [('A', t_A); ('B', t_B)]
 (*
 parse
 
-   This is an alias for the Pwz module's `parse` function.
+   This is a wrapper for the Pwz module's `parse` function.
 
    It takes two arguments: a Grammar module G (examples of which are defined
    below in this file) and a string. The string will be converted to a list of
@@ -368,7 +377,7 @@ module Grammar12 : Grammar = struct
 end
 
 (*
-Grammar13: An additional ambiguous grammar not supplied by the reviewer.
+Grammar13: An ambiguous double-production grammar.
 
    e ::= A
        | ee
