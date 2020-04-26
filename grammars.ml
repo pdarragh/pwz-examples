@@ -135,6 +135,9 @@ parse
 let parse ((module G) : (module Grammar)) (str : string) : exp list =
   Pwz.parse (tok_list_of_string str tok_assoc) G.start
 
+let instrumented_parse ((module G) : (module Grammar)) (str : string) : (exp list) * int =
+  Pwz.instrumented_parse (tok_list_of_string str tok_assoc) G.start
+
 (*
 parse_to_ast
 

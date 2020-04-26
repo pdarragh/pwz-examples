@@ -1,8 +1,11 @@
 open Types
 
+let count : int ref = ref 0
+
 let derive (p : pos) ((t, l) : tok) ((e', m) : zipper) : unit =
 
   let rec d_d (c : cxt) (e : exp) : unit =
+    count := !count + 1;
     if p == e.m.start_pos
     then begin
       e.m.parents <- c :: e.m.parents;
@@ -20,6 +23,7 @@ let derive (p : pos) ((t, l) : tok) ((e', m) : zipper) : unit =
     end
 
   and d_d' (m : mem) (e' : exp') : unit =
+    count := !count + 1;
     match e' with
     | Tok (t', _)       -> if t == t' then worklist := (Seq (l, []), m) :: !worklist
     | Seq (l', [])      -> d_u (Seq (l', [])) m
@@ -33,12 +37,14 @@ let derive (p : pos) ((t, l) : tok) ((e', m) : zipper) : unit =
     | Alt es            -> List.iter (fun e -> d_d (AltC m) e) !es
 
   and d_u (e' : exp') (m : mem) : unit =
+    count := !count + 1;
     let e = { m = m_bottom; e' = e' } in
     m.end_pos <- p;
     m.result <- e;
     List.iter (fun c -> d_u' e c) m.parents
 
   and d_u' (e : exp) (c : cxt) : unit =
+    count := !count + 1;
     match c with
     | TopC                            -> tops := e :: !tops
     | SeqC (m, l', es, [])            -> d_u (Seq (l', List.rev (e :: es))) m
@@ -86,3 +92,8 @@ let parse (ts : tok list) (e : exp) : exp list =
   in
   worklist := [init_zipper e];
   parse' (ref 0) ts
+
+let instrumented_parse (ts : tok list) (e : exp) : ((exp list) * int) =
+  count := 0;
+  let es = parse ts e in
+  (es, !count)
