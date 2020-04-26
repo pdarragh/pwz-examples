@@ -382,7 +382,7 @@ module Grammar11 : Grammar = struct
   let start = e1
 
   let tests = {
-    success = [("A", Some 1)];
+    success = [("A", None)];
     failure = [""; "AA"; "AAA"];
   }
 end
