@@ -39,6 +39,10 @@ concrete syntax trees from completed parses resulting from calls to `Pwz.parse`.
 It is used for convenience, and so is not considered part of the algorithm
 proper.
 
+`graph.ml` provides a way to print zippers as GraphViz dot diagrams. Pass the
+`~graph=true` option to the parsing functions to enable printing of the zippers
+after each token.
+
 `grammars.ml` provides a small test suite for PwZ. In it are defined a number of
 tricky grammars that provide evidence for our claim that PwZ is a general
 parsing algorithm capable of parsing any context-free grammar. These grammar

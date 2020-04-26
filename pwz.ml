@@ -84,9 +84,10 @@ let unwrap_top_exp (e1 : exp) : exp =
   | Seq (_, [_; e2]) -> e2
   | _                -> failwith "Failed to unwrap top exp!"
 
-let parse (ts : tok list) (e : exp) : exp list =
+let parse ?(graph : bool = false) (ts : tok list) (e : exp) : exp list =
   let rec parse' (p : pos) (ts : tok list) : exp list =
     let w = !worklist in
+    if graph then Graph.print !p w;
     worklist := [];
     tops := [];
     match ts with
@@ -98,7 +99,7 @@ let parse (ts : tok list) (e : exp) : exp list =
   worklist := [init_zipper e];
   parse' (ref 0) ts
 
-let instrumented_parse (ts : tok list) (e : exp) : ((exp list) * int) =
+let instrumented_parse ?(graph : bool = false) (ts : tok list) (e : exp) : ((exp list) * int) =
   count := 0;
-  let es = parse ts e in
+  let es = parse ~graph ts e in
   (es, !count)
