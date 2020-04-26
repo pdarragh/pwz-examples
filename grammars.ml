@@ -489,4 +489,6 @@ let print_test_results () : unit =
       (g_idx + 1)
       (String.concat "\n    " (List.map string_of_success_case s_idxs))
       (String.concat "\n    " (List.map string_of_failure_case f_idxs))
-  in List.iter print_result grammar_test_results
+  in match grammar_test_results with
+  | [] -> Printf.printf "All tests passed successfully."
+  | _  -> List.iter print_result grammar_test_results
