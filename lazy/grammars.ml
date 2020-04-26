@@ -128,17 +128,18 @@ instrumented_parse
    These are wrappers for the Pwz module's `parse` and `instrumented_parse`
    functions.
 
-   They each take two arguments: a Grammar module G (examples of which are
-   defined below in this file) and a string. The string will be converted to a
-   list of tokens according to the association list G.tokens. Then, the parse
-   will proceed by starting at the G.start grammar expression.
+   They each take three arguments: whether the zippers should be printed after
+   each token, a Grammar module G (examples of which are defined below in this
+   file) and a string. The string will be converted to a list of tokens
+   according to the association list G.tokens. Then, the parse will proceed by
+   starting at the G.start grammar expression.
 *)
 
-let parse ((module G) : (module Grammar)) (str : string) : exp list =
-  Pwz.parse (tok_list_of_string str tok_assoc) G.start
+let parse ?(graph : bool = false) ((module G) : (module Grammar)) (str : string) : exp list =
+  Pwz.parse ~graph (tok_list_of_string str tok_assoc) G.start
 
-let instrumented_parse ((module G) : (module Grammar)) (str : string) : (exp list) * int =
-  Pwz.instrumented_parse (tok_list_of_string str tok_assoc) G.start
+let instrumented_parse ?(graph : bool = false) ((module G) : (module Grammar)) (str : string) : (exp list) * int =
+  Pwz.instrumented_parse ~graph (tok_list_of_string str tok_assoc) G.start
 
 (*
 parse_to_cst_list
