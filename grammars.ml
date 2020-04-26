@@ -1,4 +1,5 @@
 open Types
+open Ast
 
 (*
 TEST GRAMMARS FOR PARSING WITH ZIPPERS
