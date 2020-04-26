@@ -40,9 +40,6 @@ and m_bottom : mem = {
   result     = e_bottom;
 }
 
-let worklist : (zipper list) ref = ref []
-let tops     :    (exp list) ref = ref []
-
 let tok (t : tok)                 : exp_m = { m = m_bottom; e' = Tok(t) }
 let seq (l : lab) (es : exp list) : exp_m = { m = m_bottom; e' = Seq(l, es) }
 let alt (es : exp list)           : exp_m = { m = m_bottom; e' = Alt(ref es) }

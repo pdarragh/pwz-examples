@@ -1,5 +1,10 @@
 open Types
 
+(* These values are for tracking progress during parsing. *)
+let worklist : (zipper list) ref = ref []
+let tops     :    (exp list) ref = ref []
+
+(* This is used for instrumentation. *)
 let count : int ref = ref 0
 
 let derive (p : pos) ((t, l) : tok) ((e', m) : zipper) : unit =
