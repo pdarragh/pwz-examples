@@ -1,13 +1,30 @@
 # PwZ Examples
 
-A straightforward implementation of Parsing with Zippers.
+A straightforward implementation of Parsing with Zippers (PwZ).
 
 This library was built using OCaml version 4.05.0. It has no other external
 dependencies.
 
+To get started, we recommend running an interactive OCaml session using the file
+`repl.ml` as an initialization file. You can do this by doing
+`ocaml -init repl.ml`. (Or, if you have `utop` installed, `utop -init repl.ml`.
+We recommend using UTop if you have it, as it provides a significantly improved
+interactive OCaml interpreter.)
+
+If you'd like to read the PwZ algorithm directly, please look in the `pwz.ml`
+file. The types used there are defined in `types.ml`.
+
+## Lazy Implementation
+
+We have provided an additional implementation of the code which makes use of the
+`lazy` type in OCaml. This allows for the use of "smart constructors", which
+greatly ease the construction of new grammars. This code can be found in the
+`lazy/` subdirectory.
+
 ## Code Organization
 
-The code is organized into a few key files.
+The code is organized into a few key files, which we explain in more detail
+here.
 
 `types.ml` defines the types used by various files. Specifically, this is where
 the type aliases for labels, tags, positions, and tokens are defined, as well as
